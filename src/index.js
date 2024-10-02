@@ -127,6 +127,7 @@ app.use(express.json());
 app.use('/api', require('./rutas'));
 
 app.use('/api/cargos', require('./rutas/rutasCargo'));
+app.use('/api/departamentos', require('./rutas/rutasDepartamento'));
 
 
 app.listen(app.get('port'), ()=>{
