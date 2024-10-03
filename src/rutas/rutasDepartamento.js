@@ -101,4 +101,27 @@ ruta.put('/editar',
     controladorDepartamento.modificar
 );
 
+ruta.delete('/eliminar', 
+    query("id").isInt().withMessage("El id del departamento debe ser entero")
+    .custom(
+        async value=>{
+            if(!value){
+                throw new Error("El id del departamento no puede ser nulo");
+                
+            }else{
+                const buscaDepto = await modeloDepartamento.findOne({
+                    where: {
+                        id:value
+                    }
+                });
+
+                if(!buscaDepto){
+                    throw new Error("No existe un departamento con este id");
+                }
+            }
+        }
+    ),
+    controladorDepartamento.eliminar
+)
+
 module.exports = ruta;

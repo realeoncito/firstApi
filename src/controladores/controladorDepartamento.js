@@ -175,6 +175,40 @@ exports.modificar = async (req, res) => {
     }
 }
 
+exports.eliminar = async (req, res) => {
+    const errores = validationResult(req);
+    var ers = []
+    errores.errors.forEach(e=>{
+        ers.push({
+            campo: e.path, 
+            mensaje: e.msg
+        });
+    });
+
+    if(ers.length > 0){
+        enviaRespuesta(res, {
+            msg: "Se encontraron los siguientes errores en la peticion",
+            errores: ers
+        });
+    }else{
+        const {id} = req.query;
+        await modeloDepartamento.destroy({
+            where: {
+                id
+            }
+        })
+        .then(data=>{
+            enviaRespuesta(res, {msg: "Registro eliminado"})
+        })
+        .catch(e=>{
+            enviaRespuesta(res, {
+                msg: "Excepcion encontrada el realizar la eliminacion",
+                Excepcion: e
+            })
+        })
+    }
+}
+
 function enviaRespuesta(res, jsonObject) {
     res.statusCode = 200;
     res.setHeader("Content-Type", "application/json");
