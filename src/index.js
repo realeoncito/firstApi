@@ -128,7 +128,7 @@ app.use('/api', require('./rutas'));
 
 app.use('/api/cargos', require('./rutas/rutasCargo'));
 app.use('/api/departamentos', require('./rutas/rutasDepartamento'));
-
+app.use('/api/municipios', require('./rutas/rutasMunicipio'));
 
 app.listen(app.get('port'), ()=>{
     console.log('Servidor iniciado en el puerto '+ app.get('port'));
