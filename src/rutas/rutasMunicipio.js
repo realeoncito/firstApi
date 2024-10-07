@@ -52,7 +52,8 @@ ruta.post('/guardar',
     ),
     
     //Validar que venga el id del departamento y que exista
-    body("departamentoId").custom(
+    body("departamentoId").isInt().withMessage("El id del departamento debe ser entero. ")
+    .custom(
         async value =>{
             if(!value){
                 throw new Error("El id del departamento no puede ser nulo");
