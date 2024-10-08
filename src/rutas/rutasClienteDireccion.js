@@ -178,7 +178,7 @@ ruta.delete('/eliminar',
                 });
 
                 if(!buscaDireccion){
-                    throw new Error("No existe un barrio con este id");
+                    throw new Error("No existe una direccion con este id");
                 }
             }
         }

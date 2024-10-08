@@ -132,6 +132,9 @@ app.use('/api/municipios', require('./rutas/rutasMunicipio'));
 app.use('/api/ciudades', require('./rutas/rutasCiudad'));
 app.use('/api/barrios', require('./rutas/rutasBarrio'));
 app.use('/api/direcciones', require('./rutas/rutasClienteDireccion'));
+app.use('/api/clientes', require('./rutas/rutasCliente'));
+app.use('/api/telefonos', require('./rutas/rutasClienteTelefono'));
+app.use('/api/empleados',  require('./rutas/rutasEmpleado'));
 
 app.listen(app.get('port'), ()=>{
     console.log('Servidor iniciado en el puerto '+ app.get('port'));

@@ -1,12 +1,12 @@
 
 const { application } = require('express');
-const modeloClienteDireccion = require('../modelos/ubicacion/clienteDireccion');
+const modeloClienteTelefono = require('../modelos/clienteTelefono');
 const { validationResult } = require('express-validator');
 const { Op, where, json } = require('sequelize');
 
 exports.listar = async (req, res) => {
     try {
-        await modeloClienteDireccion.findAll()
+        await modeloClienteTelefono.findAll()
             .then((data) => {
                 enviaRespuesta(res, data)
             })
@@ -20,41 +20,6 @@ exports.listar = async (req, res) => {
     }
 }
 
-exports.listarBarrio = async (req, res) => {
-    const errores = validationResult(req);
-    var ers = []
-
-    errores.errors.forEach((e) => {
-        ers.push({ campo: e.path, mensaje: e.msg });
-    });
-
-    if (ers.length > 0) {
-        enviaRespuesta(res, ers)
-    } else {
-        try {
-            const { barrioId } = req.query;
-            await modeloClienteDireccion.findAll({
-                where: {
-                    barrioId
-                }
-            }).then((data) => {
-                enviaRespuesta(res, data);
-            }).catch((er) => {
-                enviaRespuesta(res,
-                    {
-                        msg: "Error en la consulta " + er
-                    }
-                )
-            })
-
-        } catch (ex) {
-            enviaRespuesta(res, {
-                msg: "Error al listar los barrios de esta ciudad :" + ex
-            })
-        }
-    }
-
-}
 
 exports.guardar = async (req, res) => {
     const errores = validationResult(req);
@@ -70,7 +35,7 @@ exports.guardar = async (req, res) => {
     } else {
         try {
 
-            await modeloClienteDireccion.create({ ...req.body })
+            await modeloClienteTelefono.create({ ...req.body })
                 .then((data) => {
                     enviaRespuesta(res, { msg: "Registro guardado " + data })
                 }).catch((ex) => {
@@ -98,7 +63,7 @@ exports.modificar = async (req, res) => {
 
     if (ers.length > 0) {
         enviaRespuesta(res, {
-            msg: "Error al modificar la direccion",
+            msg: "Error al modificar el telefono",
             errores: ers
         })
 
@@ -106,8 +71,7 @@ exports.modificar = async (req, res) => {
 
         try {
             //Variables para determinar la nulidad de los campos
-            var direccionNull = false;
-            var barNull = false;
+            var numeroNull = false;
             var cliNull = false;
 
             //Mensaje para enviar dependiendo del campo que arroje error
@@ -115,25 +79,21 @@ exports.modificar = async (req, res) => {
 
             //Extraemos los datos provenientes del body del request
             const { id } = req.query;
-            const { direccion, barrioId, clienteId } = req.body;
+            const { numero, clienteId } = req.body;
 
-            if (!direccion) {
-                direccionNull = true;
-            }
-
-            if (!barrioId) {
-                barNull = true;
+            if (!numero) {
+                numeroNull = true;
             }
 
             if (!clienteId) {
                 cliNull = true;
             }
 
-            if (direccionNull && barNull && cliNull) {
+            if (numeroNull && cliNull) {
                 enviaRespuesta(res, { msg: "No hay nada que modificar" })
             } else {
                 
-                await modeloClienteDireccion.update(
+                await modeloClienteTelefono.update(
                     { ...req.body },
                     {
                         where: {
@@ -180,7 +140,7 @@ exports.eliminar = async (req, res) => {
         });
     } else {
         const { id } = req.query;
-        await modeloClienteDireccion.destroy({
+        await modeloClienteTelefono.destroy({
             where: {
                 id
             }
