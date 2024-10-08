@@ -1,12 +1,12 @@
 
 const { application } = require('express');
-const modeloMunicipio = require('../modelos/ubicacion/municipio');
+const modeloBarrio = require('../modelos/ubicacion/barrio');
 const { validationResult } = require('express-validator');
 const {Op, where, json} = require('sequelize');
 
 exports.listar = async (req, res) => {
     try {
-        await modeloMunicipio.findAll()
+        await modeloBarrio.findAll()
             .then((data) => {
                enviaRespuesta(res, data)
             })
@@ -20,7 +20,7 @@ exports.listar = async (req, res) => {
     }
 }
 
-exports.listarDepto = async (req, res) => {
+exports.listarCiudad = async (req, res) => {
     const errores = validationResult(req);
     var ers = []
 
@@ -32,10 +32,10 @@ exports.listarDepto = async (req, res) => {
         enviaRespuesta(res, ers)
     }else{
         try{
-            const {departamentoId} = req.query;
-            await modeloMunicipio.findAll({
+            const {ciudadId} = req.query;
+            await modeloBarrio.findAll({
                 where: {
-                    departamentoId
+                    ciudadId
                 }
             }).then((data)=>{
                 enviaRespuesta(res, data);
@@ -49,7 +49,7 @@ exports.listarDepto = async (req, res) => {
 
         }catch (ex){
             enviaRespuesta(res, {
-                msg: "Error al listar los municipios de este departamento :" + ex
+                msg: "Error al listar los barrios de esta ciudad :" + ex
             })
         }
     }
@@ -70,43 +70,31 @@ exports.guardar = async (req, res) => {
     } else {
         try {
              
-            var codEncontrado, nomEncontrado = false;
+            var nomEncontrado = false;
             var msjError = '';
-            const {codMunicipio, nombreMunicipio, departamentoId} = req.body;
+            const {nombrebarrio, ciudadId} = req.body;
             //Realizar validaciones para cada uno de los campos. 
 
-            const buscaCodigo = await modeloMunicipio.findOne({
+            const buscaNombre = await modeloBarrio.findOne({
                 where: {
-                    codMunicipio : codMunicipio,
-                    departamentoId : departamentoId
+                    nombrebarrio : nombrebarrio, 
+                    ciudadId : ciudadId
                 }
             });
 
-            if(buscaCodigo){
-                codEncontrado = true;
-                msjError += 'El codigo del municipio ya existe dentro del departamento.'
-            }else{
-                const buscaNombre = await modeloMunicipio.findOne({
-                    where: {
-                        nombreMunicipio : nombreMunicipio, 
-                        departamentoId : departamentoId
-                    }
-                });
-
-                if(buscaNombre){
-                    nomEncontrado = true
-                    msjError += 'El nombre del municipio ya existe dentro del departamento.'
-                }
+            if(buscaNombre){
+                nomEncontrado = true
+                msjError += 'El nombre del barrio ya existe dentro de la ciudad.'
             }
 
-            if(codEncontrado || nomEncontrado){
+            if(nomEncontrado){
                 enviaRespuesta(res, {
                     msj: 'Error en la integridad de datos', 
                     errores: msjError
                 });
             }else{
 
-                await modeloMunicipio.create({ ...req.body })
+                await modeloBarrio.create({ ...req.body })
                     .then((data) => {
                         enviaRespuesta(res, {msg: "Registro guardado " + data})
                     }).catch((ex)=>{
@@ -134,7 +122,7 @@ exports.modificar = async (req, res) => {
 
     if (ers.length > 0) {
         enviaRespuesta(res, {
-            msg: "Error al modificar el municipio",
+            msg: "Error al modificar el barrio",
             errores: ers
         })
 
@@ -142,13 +130,11 @@ exports.modificar = async (req, res) => {
 
         try {
             //Variables para determinar la nulidad de los campos
-            var codNull = false;
             var nombreNull = false;
             var estadoNull = false
-            var deptoNull = false;
+            var ciuNull = false;
 
             //Variables para determinar la existencia de los registros
-            var existeCod = false;
             var existeNom = false;
 
             //Mensaje para enviar dependiendo del campo que arroje error
@@ -156,132 +142,82 @@ exports.modificar = async (req, res) => {
 
             //Extraemos los datos provenientes del body del request
             const {id} = req.query;
-            const { nombreMunicipio, codMunicipio, estado, departamentoId } = req.body;
-            console.log(departamentoId);
+            const { nombrebarrio, estado, ciudadId } = req.body;
 
-            if(!nombreMunicipio){
+            if(!nombrebarrio){
                 nombreNull = true;
-            }
-
-            if(!codMunicipio){
-                codNull = true;
             }
 
             if(!estado){
                 estadoNull = true;
             }
 
-            if(!departamentoId){
-                deptoNull = true;
+            if(!ciudadId){
+                ciuNull = true;
             }
 
-            if(codNull && nombreNull && estadoNull && deptoNull){
+            if(nombreNull && estadoNull && ciuNull){
                 enviaRespuesta(res, {msg: "No hay nada que modificar"})
             }else{
-                var deptoAuxiliar = ''
-                //Validamos que no exista un municipio con ese mismo codigo. 
-                if(!codNull){
-                    //Si el departamento id no viene en el body, hay que recuperarlo
-                    if(deptoNull){
-                        const {departamentoId} = await modeloMunicipio.findOne({
-                            where : {
-                                id
-                            }
-                        })
-                        deptoAuxiliar = departamentoId
-                    }else{
-                        //El que viene por parametro
-                        deptoAuxiliar = departamentoId
-                    }
-                    console.log('Departamento Id : ' + deptoAuxiliar)
-
-                    const buscaMunicipio = await modeloMunicipio.findOne({
-                        where: { 
-                            codMunicipio : codMunicipio,
-                            id: {[Op.ne]: id},
-                            departamentoId :  deptoAuxiliar
-                        }
-                    });
-
-                    console.log(buscaMunicipio)
-
-                    if(buscaMunicipio){
-                        existeCod = true
-                        msjError+= "El codigo del municipio ya existe en este departamento\n"
-                    }
-                }
+                var ciuAuxiliar = ''
 
                 if(!nombreNull){
 
                     //Si el departamento no viene en el body
-                    if(deptoNull){
-                        const {departamentoId} = await modeloMunicipio.findOne({
+                    if(ciuNull){
+                        const {ciudadId} = await modeloBarrio.findOne({
                             where : {
                                 id
                             }
                         })
-                        deptoAuxiliar = departamentoId
+                        ciuAuxiliar = ciudadId
                     }else{
-                        deptoAuxiliar = departamentoId
+                        ciuAuxiliar = ciudadId
                     }
-                    const buscaMunNom = await modeloMunicipio.findOne({
+                    const buscaBarNom = await modeloBarrio.findOne({
                         where : {
-                            nombreMunicipio:nombreMunicipio,
+                            nombrebarrio:nombrebarrio,
                             id: {[Op.ne] : id},
-                            departamentoId:deptoAuxiliar
+                            ciudadId:ciuAuxiliar
                         }
                     })
 
-                    if(buscaMunNom){
+                    if(buscaBarNom){
                         existeNom = true;
-                        msjError += 'El nombre del municipio ya existe para este departamento\n'
+                        msjError += 'El nombre del barrio ya existe para esta ciudad\n'
                     }
                 }
 
-                //Si solo se va a cambiar de departamento
-                if(!deptoNull && codNull && nombreNull){
+                //Si solo se va a cambiar de municipio
+                if(!ciuNull && nombreNull){
                     //Recuperamos el municipio actual que se quiere actualizar
-                    const {codMunicipio, nombreMunicipio} = await modeloMunicipio.findOne({
+                    const {nombrebarrio} = await modeloBarrio.findOne({
                         where: {
                             id: id
                         }
                     })
-                    console.log(codMunicipio + ' ' + nombreMunicipio);
 
                     //Validamos que no exista el codigo o el nombre en el nuevo departamento
-                    const auxMunicipio = await modeloMunicipio.findOne({
+                    const auxBarrio = await modeloBarrio.findOne({
                         where : {
-                            codMunicipio: codMunicipio, 
-                            id: {[Op.ne]: id}, 
-                            departamentoId: departamentoId
+                            nombrebarrio: nombrebarrio,
+                            id: {[Op.ne]: id},
+                            ciudadId : ciudadId
                         }
                     })
 
-                    if(auxMunicipio){
-                        existeCod = true;
-                        msjError += 'El codigo del municipio ya existe para este departamento'
-                    }else{
-                        const auxMunicipio = await modeloMunicipio.findOne({
-                            where : {
-                                nombreMunicipio: nombreMunicipio,
-                                id: {[Op.ne]: id},
-                                departamentoId : departamentoId
-                            }
-                        })
-
-                        if(auxMunicipio){
-                            existeNom = true
-                            msjError += 'El nombre del municipio ya existe para este departamento'
-                        }
+                    if(auxBarrio){
+                        existeNom = true
+                        msjError += 'El nombre del barrio ya existe para esta ciudad'
                     }
 
                 }
 
-                if(existeCod || existeNom){
+                if(existeNom){
                     enviaRespuesta(res, {msg: msjError});
                     
                 }else{
-                    await modeloMunicipio.update(
+                    await modeloBarrio.update(
                         {...req.body},
                         {
                             where : {
@@ -329,7 +265,7 @@ exports.eliminar = async (req, res) => {
         });
     }else{
         const {id} = req.query;
-        await modeloMunicipio.destroy({
+        await modeloBarrio.destroy({
             where: {
                 id
             }

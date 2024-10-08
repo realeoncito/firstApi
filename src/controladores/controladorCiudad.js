@@ -122,7 +122,7 @@ exports.modificar = async (req, res) => {
 
     if (ers.length > 0) {
         enviaRespuesta(res, {
-            msg: "Error al modificar el departamento",
+            msg: "Error al modificar la ciudad",
             errores: ers
         })
 
@@ -174,7 +174,7 @@ exports.modificar = async (req, res) => {
                     }else{
                         munAuxiliar = municipioId
                     }
-                    const buscaMunNom = await modeloCiudad.findOne({
+                    const buscaCiuNom = await modeloCiudad.findOne({
                         where : {
                             nombreCiudad:nombreCiudad,
                             id: {[Op.ne] : id},
@@ -182,7 +182,7 @@ exports.modificar = async (req, res) => {
                         }
                     })
 
-                    if(buscaMunNom){
+                    if(buscaCiuNom){
                         existeNom = true;
                         msjError += 'El nombre de la ciudad ya existe para este municipio\n'
                     }
